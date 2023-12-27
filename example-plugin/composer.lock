@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/joaomsl/lib-isocrono.git",
-                "reference": "9b65055a8c5f452cc138dd410f05afe22c627419"
+                "reference": "76f66ef4cccfff2286eab7c7533788699deefad7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/joaomsl/lib-isocrono/zipball/9b65055a8c5f452cc138dd410f05afe22c627419",
-                "reference": "9b65055a8c5f452cc138dd410f05afe22c627419",
+                "url": "https://api.github.com/repos/joaomsl/lib-isocrono/zipball/76f66ef4cccfff2286eab7c7533788699deefad7",
+                "reference": "76f66ef4cccfff2286eab7c7533788699deefad7",
                 "shasum": ""
             },
             "require": {
@@ -53,7 +53,7 @@
                 "issues": "https://github.com/joaomsl/lib-isocrono/issues",
                 "source": "https://github.com/joaomsl/lib-isocrono/tree/main"
             },
-            "time": "2023-12-27T14:02:53+00:00"
+            "time": "2023-12-27T14:09:38+00:00"
         }
     ],
     "packages-dev": [

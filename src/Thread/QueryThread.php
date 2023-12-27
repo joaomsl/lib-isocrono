@@ -48,8 +48,8 @@ class QueryThread extends Thread
         $query = $this->scheduledQueriesQueue->shift();
         $this->scheduledQueriesQueue->notify();
         if($query instanceof ScheduledQuery) {
-            $driver->executeQuery($query);
-            $this->processedQueue[] = $query;
+            $query->setPromiseHandler($driver->executeQuery($query));
+            $this->processedQueriesQueue[] = $query;
         }
     }
     

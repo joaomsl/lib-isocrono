@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Jmsl\Isocrono\Driver;
 
 use BadMethodCallException;
+use Closure;
 use InvalidArgumentException;
 use Jmsl\Isocrono\Driver\Driver;
 use Jmsl\Isocrono\Query\Bind\Bind;
 use Jmsl\Isocrono\Query\Bind\BindType;
 use Jmsl\Isocrono\Query\FetchMode;
-use Jmsl\Isocrono\Query\Query;
 use Jmsl\Isocrono\Query\ScheduledQuery;
 use Jmsl\Isocrono\Support\Promise;
 use PDO;
@@ -50,7 +50,7 @@ class PDODriver implements Driver
         };
     }
 
-    public function executeQuery(ScheduledQuery $scheduledQuery): void 
+    public function executeQuery(ScheduledQuery $scheduledQuery): Closure 
     {
         if(!isset($this->connection)) {
             throw new BadMethodCallException('Connection is closed.');
@@ -78,16 +78,18 @@ class PDODriver implements Driver
                 FetchMode::SUCCESSFULLY => $successfully
             };
 
-            $scheduledQuery->setPromiseHandler(static function(Promise $promise) use($result) {
+            $handler = static function(Promise $promise) use($result) {
                 $promise->resolve($result);
-            });
+            };
         } catch(PDOException $ex) {
-            $scheduledQuery->setPromiseHandler(static function(Promise $promise) use($ex) {
+            $handler = static function(Promise $promise) use($ex) {
                 $promise->reject($ex);
-            });
+            };
+        } finally {
+            $statement->closeCursor();
         }
 
-        $statement->closeCursor();
+        return $handler;
     }
     
     public function close(): void 
