@@ -8,7 +8,6 @@ use Closure;
 use Jmsl\Isocrono\Query\Bind\Bind;
 use Jmsl\Isocrono\Query\Bind\BindList;
 use Jmsl\Isocrono\Query\Bind\BindType;
-use Jmsl\Isocrono\Support\Promise;
 use Jmsl\Isocrono\Thread\QueryPool;
 use stdClass;
 
