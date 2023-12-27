@@ -12,6 +12,7 @@ use Jmsl\Isocrono\Query\Bind\BindType;
 use Jmsl\Isocrono\Query\FetchMode;
 use Jmsl\Isocrono\Query\Query;
 use Jmsl\Isocrono\Query\ScheduledQuery;
+use Jmsl\Isocrono\Support\Promise;
 use PDO;
 use PDOException;
 use pmmp\thread\ThreadSafeArray;
@@ -67,7 +68,7 @@ class PDODriver implements Driver
             );
         }
 
-        // try {
+        try {
             $successfully = $statement->execute();
 
             $result = match($query->getFetchMode()) {
@@ -77,11 +78,10 @@ class PDODriver implements Driver
                 FetchMode::SUCCESSFULLY => $successfully
             };
 
-            var_dump([$query->getQuery(), $result]);
-            // $query->getPromise()->resolve($result);
-        // } catch(PDOException $ex) {
-            // $query->getPromise()->reject($ex);
-        // }
+            $scheduledQuery->setPromiseHandler(fn(Promise $promise) => $promise->resolve($result));
+        } catch(PDOException $ex) {
+            $scheduledQuery->setPromiseHandler(fn(Promise $promise) => $promise->reject($ex));
+        }
 
         $statement->closeCursor();
     }
