@@ -124,7 +124,7 @@ class QueryPool
         $this->scheduledQueriesQueue->notify();
         
         // and now just perform the join to terminate the threads
-        array_walk($this->threads, fn(QueryThread $thread) => $thread->quit());
+        array_walk($this->threads, fn(QueryThread $thread) => $thread->join());
         
         $this->threads = [];
         Server::getInstance()->getTickSleeper()->removeNotifier($this->processedQueriesSleeperHandlerId);
