@@ -49,12 +49,13 @@ class PDODriver implements Driver
         };
     }
 
-    public function executeQuery(ScheduledQuery $query): void 
+    public function executeQuery(ScheduledQuery $scheduledQuery): void 
     {
         if(!isset($this->connection)) {
             throw new BadMethodCallException('Connection is closed.');
         }
 
+        $query = $scheduledQuery->getQuery();
         $statement = $this->connection->prepare($query->getQuery());
         
         /** @var Bind $bind */
