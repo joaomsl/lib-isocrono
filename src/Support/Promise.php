@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Jmsl\Isocrono\Support;
 
 use Closure;
-use pmmp\thread\ThreadSafe;
 use Throwable;
 
-class Promise extends ThreadSafe
+class Promise
 {
 
     public function __construct(
