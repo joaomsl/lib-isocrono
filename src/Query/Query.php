@@ -15,7 +15,7 @@ class Query extends ThreadSafe
     public function __construct(
         private string $query,
         private BindList $bindList,
-        private Promise $promise,
+        // private Promise $promise,
         private FetchMode $fetchMode
     ) {
         if(empty($query)) {
@@ -33,10 +33,10 @@ class Query extends ThreadSafe
         return $this->bindList;
     }
 
-    public function getPromise(): Promise
-    {
-        return $this->promise;
-    }
+    // public function getPromise(): Promise
+    // {
+    //     return $this->promise;
+    // }
 
     public function getFetchMode(): FetchMode
     {

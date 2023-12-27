@@ -78,7 +78,7 @@ class PendingQuery
         return new Query(
             $this->storage->query,
             $bindList,
-            new Promise($this->storage->then ?? null, $this->storage->catch ?? null),
+            // new Promise($this->storage->then ?? null, $this->storage->catch ?? null),
             $this->storage->fetchMode ?? FetchMode::SUCCESSFULLY
         );
     }

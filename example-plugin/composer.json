@@ -8,13 +8,13 @@
             "email": "109992990+joaomsl@users.noreply.github.com"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "require": {
-        "php": "^8.3.0"
+        "php": "^8.3.0",
+        "jmsl/lib-isocrono": "*"
     },
     "require-dev": {
-        "pocketmine/pocketmine-mp": "^5.10",
-        "jmsl/lib-isocrono": "^1.0"
+        "pocketmine/pocketmine-mp": "^5.10"
     },
     "autoload": {
         "psr-4": {

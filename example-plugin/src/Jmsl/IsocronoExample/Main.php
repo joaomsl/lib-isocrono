@@ -55,23 +55,23 @@ class Main extends PluginBase
 
     protected function whenTableExists(bool $created): void 
     {
-        $this->getLogger()->info($created ? 'Table created.' : 'Table already exists.');
-        $this->getLogger()->info('Inserting records...');
+        var_dump($created ? 'Table created.' : 'Table already exists.');
+        var_dump('Inserting records...');
 
         for($_ = 0; $_ < 10; $_++) {
             Query::prepare('INSERT INTO `test` (`uuid`, `random_number`) VALUES (:uuid, :random_number)')
                 ->bind('uuid', Uuid::uuid4()->toString())
                 ->bind('random_number', mt_rand(-128, 127), BindType::INT)
                 ->resultAsLastId()
-                ->then(static fn(mixed $newRecordId) => $this->getLogger()->info(sprintf('New table record #%s', $newRecordId)))
-                ->catch(static fn(PDOException $ex) => $this->getLogger()->error(sprintf('Failed to insert record: %s', $ex->getMessage())))
+                ->then(static fn(mixed $newRecordId) => var_dump(sprintf('New table record #%s', $newRecordId)))
+                ->catch(static fn(PDOException $ex) => var_dump(sprintf('Failed to insert record: %s', $ex->getMessage())))
                 ->execute($this->pool);
         }
     }
 
     protected function tableCreationFailed(PDOException $ex): void 
     {
-        $this->getLogger()->critical(sprintf('An error occurred while creating/verifying the table: %s', $ex->getMessage()));
+        var_dump(sprintf('An error occurred while creating/verifying the table: %s', $ex->getMessage()));
     }
 
     protected function onDisable(): void
@@ -87,7 +87,7 @@ class Main extends PluginBase
         Query::prepare('SELECT * FROM `test` ORDER BY `id` DESC LIMIT 10')
             ->resultAsAllLines()
             ->then(static fn(array $results) => var_dump($results))
-            ->catch(static fn(PDOException $ex) => $this->getLogger()->error(sprintf('Unable to list last inserted records: %s', $ex->getMessage())));
+            ->catch(static fn(PDOException $ex) => var_dump(sprintf('Unable to list last inserted records: %s', $ex->getMessage())));
 
         // By default `stop()` will wait for pending queries to be executed
         $this->pool->stop(waitPendingQueries: true);

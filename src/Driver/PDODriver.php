@@ -65,7 +65,7 @@ class PDODriver implements Driver
             );
         }
 
-        try {
+        // try {
             $successfully = $statement->execute();
 
             $result = match($query->getFetchMode()) {
@@ -75,10 +75,11 @@ class PDODriver implements Driver
                 FetchMode::SUCCESSFULLY => $successfully
             };
 
-            $query->getPromise()->resolve($result);
-        } catch(PDOException $ex) {
-            $query->getPromise()->reject($ex);
-        }
+            var_dump([$query->getQuery(), $result]);
+            // $query->getPromise()->resolve($result);
+        // } catch(PDOException $ex) {
+            // $query->getPromise()->reject($ex);
+        // }
 
         $statement->closeCursor();
     }
