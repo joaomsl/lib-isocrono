@@ -1,0 +1,5 @@
+name: "IsocronoExample"
+version: 1.0.0
+main: "Jmsl\\IsocronoExample\\Main"
+author: "João M."
+api: 5.10.0

@@ -1,0 +1,24 @@
+{
+    "name": "jmsl/example-isocrono-plugin",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "João M.",
+            "email": "109992990+joaomsl@users.noreply.github.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^8.3.0"
+    },
+    "require-dev": {
+        "pocketmine/pocketmine-mp": "^5.10",
+        "jmsl/lib-isocrono": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Jmsl\\IsocronoExample\\": "src/Jmsl/IsocronoExample/"
+        }
+    }
+}
