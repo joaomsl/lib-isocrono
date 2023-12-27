@@ -8,13 +8,21 @@ use BadMethodCallException;
 use Closure;
 use InvalidArgumentException;
 use Jmsl\Isocrono\Query\Query;
+use Jmsl\Isocrono\Query\ScheduledQuery;
 use Jmsl\Isocrono\Support\DriverFactory;
+use Jmsl\Isocrono\Support\Promise;
 use pmmp\thread\ThreadSafeArray;
+use Ramsey\Uuid\Uuid;
+use SplQueue;
 
 class QueryPool
 {
 
     private ThreadSafeArray $queue;
+
+    /** @var array<string, Promise> */
+    private array $promises = [];
+
 
     /** @var QueryThread[] */
     private array $threads = [];
@@ -37,14 +45,17 @@ class QueryPool
         $this->queue->synchronized($closure, $this->queue);
     }
 
-    public function scheduleQuery(Query $query): void 
+    public function scheduleQuery(Query $query, Promise $promise): void 
     {
         if(count($this->threads) < 1) {
             throw new BadMethodCallException('All threads have already been stopped.');
         }
 
-        $this->queueSynchronized(function(ThreadSafeArray $queue) use($query) {
-            $queue[] = $query;
+        $scheduledQuery = new ScheduledQuery(Uuid::uuid4()->toString(), $query);
+        $this->promises[$scheduledQuery->getId()] = $promise;
+
+        $this->queueSynchronized(function(ThreadSafeArray $queue) use($scheduledQuery) {
+            $queue[] = $scheduledQuery;
             $queue->notifyOne();
         });
     }
