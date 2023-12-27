@@ -8,6 +8,7 @@ use Closure;
 use Jmsl\Isocrono\Query\Bind\Bind;
 use Jmsl\Isocrono\Query\Bind\BindList;
 use Jmsl\Isocrono\Query\Bind\BindType;
+use Jmsl\Isocrono\Support\Promise;
 use Jmsl\Isocrono\Thread\QueryPool;
 use stdClass;
 
@@ -77,14 +78,16 @@ class PendingQuery
         return new Query(
             $this->storage->query,
             $bindList,
-            // new Promise($this->storage->then ?? null, $this->storage->catch ?? null),
             $this->storage->fetchMode ?? FetchMode::SUCCESSFULLY
         );
     }
 
     public function execute(QueryPool $pool): void 
     {
-        $pool->scheduleQuery($this->build());
+        $pool->scheduleQuery(
+            $this->build(), 
+            new Promise($this->storage->then ?? null, $this->storage->catch ?? null)
+        );
     }
     
 }
