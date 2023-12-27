@@ -23,7 +23,6 @@ class QueryPool
     /** @var array<string, Promise> */
     private array $promises = [];
 
-
     /** @var QueryThread[] */
     private array $threads = [];
 
@@ -36,14 +35,14 @@ class QueryPool
         }
 
         for($id = 0; $id < $totalThreads; $id++) {
-            $thread = $this->threads[] = new QueryThread($id, $driverFactory, $this->scheduledQueriesQueue);
+            $thread = $this->threads[] = new QueryThread(
+                $id, 
+                $driverFactory, 
+                $this->scheduledQueriesQueue,
+                $this->processedQueriesQueue
+            );
             $thread->start();
         }
-    }
-
-    private function queueSynchronized(Closure $closure): void 
-    {
-        $this->scheduledQueriesQueue->synchronized($closure, $this->scheduledQueriesQueue);
     }
 
     public function scheduleQuery(Query $query, Promise $promise): void 
@@ -55,17 +54,17 @@ class QueryPool
         $scheduledQuery = new ScheduledQuery(Uuid::uuid4()->toString(), $query);
         $this->promises[$scheduledQuery->getId()] = $promise;
 
-        $this->scheduledQueriesQueueSynchronized(function(ThreadSafeArray $queue) use($scheduledQuery) {
-            $queue[] = $scheduledQuery;
-            $queue->notifyOne();
+        $this->scheduledQueriesQueue->synchronized(function() use($scheduledQuery) {
+            $this->scheduledQueriesQueue[] = $scheduledQuery;
+            $this->scheduledQueriesQueue->notifyOne();
         });
     }
 
     public function executePendingQueries(): void 
     {
-        $this->scheduledQueriesQueueSynchronized(function(ThreadSafeArray $queue) {
-            while($queue->count() > 0) {
-                $queue->wait();
+        $this->scheduledQueriesQueue->synchronized(function() {
+            while($this->scheduledQueriesQueue->count() > 0) {
+                $this->scheduledQueriesQueue->wait();
             }
         });
     }
