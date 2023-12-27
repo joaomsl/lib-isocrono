@@ -12,8 +12,14 @@ class ScheduledQuery extends ThreadSafe
 
     private ?Closure $promiseHandler = null;
 
-    public function __construct(private Query $query) {}
-    
+    public function __construct(private string $id, private Query $query) 
+    {}
+
+    public function getId(): string 
+    {
+        return $this->id;
+    }
+
     public function getQuery(): Query
     {
         return $this->query;
