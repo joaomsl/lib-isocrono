@@ -12,13 +12,18 @@ use Jmsl\Isocrono\Query\ScheduledQuery;
 use Jmsl\Isocrono\Support\DriverFactory;
 use Jmsl\Isocrono\Support\Promise;
 use pmmp\thread\ThreadSafeArray;
+use pocketmine\Server;
+use pocketmine\snooze\SleeperHandlerEntry;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
 class QueryPool
 {
 
     private ThreadSafeArray $scheduledQueriesQueue;
     private ThreadSafeArray $processedQueriesQueue;
+
+    private int $processedQueriesSleeperHandlerId;
 
     /** @var array<string, Promise> */
     private array $promises = [];
@@ -34,7 +39,13 @@ class QueryPool
             throw new InvalidArgumentException('The number of threads must be >= 1');
         }
 
-        for($id = 0; $id < $totalThreads; $id++) {
+        $this->initThreads($driverFactory, $totalThreads);
+        $this->initProcessedQueriesHandler();
+    }
+
+    private function initThreads(DriverFactory $driverFactory, int $total): void 
+    {
+        for($id = 0; $id < $total; $id++) {
             $thread = $this->threads[] = new QueryThread(
                 $id, 
                 $driverFactory, 
@@ -43,6 +54,36 @@ class QueryPool
             );
             $thread->start();
         }
+    }
+
+    private function initProcessedQueriesHandler(): void 
+    {
+        $handler = function() {
+            $this->processedQueriesQueue->synchronized(function() {
+                do {
+                    $this->handleProcessedQuery($this->processedQueriesQueue->shift());
+                } while($this->processedQueriesQueue->count() > 0);
+            });
+        };
+
+        $this->processedQueriesSleeperHandlerId = Server::getInstance()
+            ->getTickSleeper()
+            ->addNotifier($handler)
+            ->getNotifierId();
+    }
+
+    private function handleProcessedQuery(ScheduledQuery $scheduledQuery): void 
+    {
+        if(is_null($scheduledQuery->getPromiseHandler())) {
+            throw new RuntimeException(sprintf('Query #%s does not have a promise handler.', $scheduledQuery->getId()));
+        }
+
+        $promise = 
+            $this->promises[$scheduledQuery->getId()] ?? 
+            throw new RuntimeException(sprintf('Could not find the promise of query #%s', $scheduledQuery->getId()));
+        
+        unset($this->promises[$scheduledQuery->getId()]);
+        ($scheduledQuery->getPromiseHandler())($promise);
     }
 
     public function scheduleQuery(Query $query, Promise $promise): void 
@@ -86,6 +127,7 @@ class QueryPool
         array_walk($this->threads, fn(QueryThread $thread) => $thread->quit());
         
         $this->threads = [];
+        Server::getInstance()->getTickSleeper()->removeNotifier($this->processedQueriesSleeperHandlerId);
     }
 
 }
