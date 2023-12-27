@@ -11,6 +11,7 @@ use Jmsl\Isocrono\Query\Bind\Bind;
 use Jmsl\Isocrono\Query\Bind\BindType;
 use Jmsl\Isocrono\Query\FetchMode;
 use Jmsl\Isocrono\Query\Query;
+use Jmsl\Isocrono\Query\ScheduledQuery;
 use PDO;
 use PDOException;
 use pmmp\thread\ThreadSafeArray;
@@ -48,7 +49,7 @@ class PDODriver implements Driver
         };
     }
 
-    public function executeQuery(Query $query): void 
+    public function executeQuery(ScheduledQuery $query): void 
     {
         if(!isset($this->connection)) {
             throw new BadMethodCallException('Connection is closed.');

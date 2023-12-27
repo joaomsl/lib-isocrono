@@ -6,6 +6,7 @@ namespace Jmsl\Isocrono\Thread;
 
 use Jmsl\Isocrono\Driver\Driver;
 use Jmsl\Isocrono\Query\Query;
+use Jmsl\Isocrono\Query\ScheduledQuery;
 use Jmsl\Isocrono\Support\DriverFactory;
 use pmmp\thread\ThreadSafeArray;
 use pocketmine\thread\Thread;
@@ -45,7 +46,7 @@ class QueryThread extends Thread
         
         $query = $this->queue->shift();
         $this->queue->notify();
-        if($query instanceof Query) {
+        if($query instanceof ScheduledQuery) {
             $driver->executeQuery($query);
         }
     }
