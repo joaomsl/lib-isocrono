@@ -78,9 +78,13 @@ class PDODriver implements Driver
                 FetchMode::SUCCESSFULLY => $successfully
             };
 
-            $scheduledQuery->setPromiseHandler(fn(Promise $promise) => $promise->resolve($result));
+            $scheduledQuery->setPromiseHandler(static function(Promise $promise) use($result) {
+                $promise->resolve($result);
+            });
         } catch(PDOException $ex) {
-            $scheduledQuery->setPromiseHandler(fn(Promise $promise) => $promise->reject($ex));
+            $scheduledQuery->setPromiseHandler(static function(Promise $promise) use($ex) {
+                $promise->reject($ex);
+            });
         }
 
         $statement->closeCursor();
