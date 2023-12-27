@@ -13,12 +13,12 @@ use Jmsl\Isocrono\Support\DriverFactory;
 use Jmsl\Isocrono\Support\Promise;
 use pmmp\thread\ThreadSafeArray;
 use Ramsey\Uuid\Uuid;
-use SplQueue;
 
 class QueryPool
 {
 
-    private ThreadSafeArray $queue;
+    private ThreadSafeArray $scheduledQueriesQueue;
+    private ThreadSafeArray $processedQueriesQueue;
 
     /** @var array<string, Promise> */
     private array $promises = [];
@@ -28,21 +28,22 @@ class QueryPool
     private array $threads = [];
 
     public function __construct(DriverFactory $driverFactory, int $totalThreads = 1) {
-        $this->queue = new ThreadSafeArray;
+        $this->scheduledQueriesQueue = new ThreadSafeArray;
+        $this->processedQueriesQueue = new ThreadSafeArray;
 
         if($totalThreads < 1) {
             throw new InvalidArgumentException('The number of threads must be >= 1');
         }
 
         for($id = 0; $id < $totalThreads; $id++) {
-            $thread = $this->threads[] = new QueryThread($id, $driverFactory, $this->queue);
+            $thread = $this->threads[] = new QueryThread($id, $driverFactory, $this->scheduledQueriesQueue);
             $thread->start();
         }
     }
 
     private function queueSynchronized(Closure $closure): void 
     {
-        $this->queue->synchronized($closure, $this->queue);
+        $this->scheduledQueriesQueue->synchronized($closure, $this->scheduledQueriesQueue);
     }
 
     public function scheduleQuery(Query $query, Promise $promise): void 
@@ -54,7 +55,7 @@ class QueryPool
         $scheduledQuery = new ScheduledQuery(Uuid::uuid4()->toString(), $query);
         $this->promises[$scheduledQuery->getId()] = $promise;
 
-        $this->queueSynchronized(function(ThreadSafeArray $queue) use($scheduledQuery) {
+        $this->scheduledQueriesQueueSynchronized(function(ThreadSafeArray $queue) use($scheduledQuery) {
             $queue[] = $scheduledQuery;
             $queue->notifyOne();
         });
@@ -62,7 +63,7 @@ class QueryPool
 
     public function executePendingQueries(): void 
     {
-        $this->queueSynchronized(function(ThreadSafeArray $queue) {
+        $this->scheduledQueriesQueueSynchronized(function(ThreadSafeArray $queue) {
             while($queue->count() > 0) {
                 $queue->wait();
             }
@@ -80,7 +81,7 @@ class QueryPool
         
         // we notify the threads to perform another tick, and due to the above instruction 
         // the threads will exit the loop of waiting for a new query
-        $this->queue->notify();
+        $this->scheduledQueriesQueue->notify();
         
         // and now just perform the join to terminate the threads
         array_walk($this->threads, fn(QueryThread $thread) => $thread->quit());

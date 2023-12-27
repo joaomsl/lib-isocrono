@@ -19,7 +19,8 @@ class QueryThread extends Thread
     public function __construct(
         private int $id,
         private DriverFactory $driverFactory,
-        public ThreadSafeArray $queue
+        public ThreadSafeArray $scheduledQueriesQueue,
+        public ThreadSafeArray $processedQueriesQueue,
     ) {}
 
     public function noWait(): void 
@@ -32,7 +33,7 @@ class QueryThread extends Thread
         $driver = $this->driverFactory->make();
 
         while($this->wait) {
-            $this->queue->synchronized($this->heartbeat(...), $driver);
+            $this->scheduledQueriesQueue->synchronized($this->heartbeat(...), $driver);
         }
 
         $driver->close();
@@ -40,14 +41,15 @@ class QueryThread extends Thread
     
     private function heartbeat(Driver $driver): void 
     {
-        while($this->queue->count() < 1 && $this->wait) {
-            $this->queue->wait();
+        while($this->scheduledQueriesQueue->count() < 1 && $this->wait) {
+            $this->scheduledQueriesQueue->wait();
         }
         
-        $query = $this->queue->shift();
-        $this->queue->notify();
+        $query = $this->scheduledQueriesQueue->shift();
+        $this->scheduledQueriesQueue->notify();
         if($query instanceof ScheduledQuery) {
             $driver->executeQuery($query);
+            $this->processedQueue[] = $query;
         }
     }
     
