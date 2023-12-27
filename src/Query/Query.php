@@ -6,7 +6,6 @@ namespace Jmsl\Isocrono\Query;
 
 use InvalidArgumentException;
 use Jmsl\Isocrono\Query\Bind\BindList;
-use Jmsl\Isocrono\Support\Promise;
 use pmmp\thread\ThreadSafe;
 
 class Query extends ThreadSafe
@@ -15,7 +14,6 @@ class Query extends ThreadSafe
     public function __construct(
         private string $query,
         private BindList $bindList,
-        // private Promise $promise,
         private FetchMode $fetchMode
     ) {
         if(empty($query)) {
@@ -32,12 +30,7 @@ class Query extends ThreadSafe
     {
         return $this->bindList;
     }
-
-    // public function getPromise(): Promise
-    // {
-    //     return $this->promise;
-    // }
-
+    
     public function getFetchMode(): FetchMode
     {
         return $this->fetchMode;
